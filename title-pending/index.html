@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Title Pending</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      background: #faf8f5;
+      color: #2c2c2c;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    #header {
+      text-align: center;
+      border-bottom: 2px solid #8b7355;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    #header h1 {
+      font-size: 28px;
+      letter-spacing: 1px;
+      color: #3a3a3a;
+    }
+
+    #header .subtitle {
+      font-size: 13px;
+      color: #888;
+      font-style: italic;
+    }
+
+    #header .puzzle-info {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #8b7355;
+      margin-bottom: 8px;
+    }
+
+    #title-area {
+      padding: 0 0 20px 0;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #e0dbd3;
+      text-align: center;
+    }
+
+    #title-area.solved {
+      border-bottom-color: #5a8f5a;
+    }
+
+    .title-token {
+      display: inline;
+      vertical-align: baseline;
+    }
+
+    .title-token.redacted {
+      display: inline-flex;
+      align-items: center;
+      background: #3a3a3a;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #999;
+      letter-spacing: 2px;
+      vertical-align: middle;
+      margin: 3px 2px;
+      height: 34px;
+      transition: background 0.15s;
+    }
+
+    .hint-mode .title-token.redacted {
+      cursor: pointer;
+      background: #555;
+      outline: 2px solid #c9a832;
+      outline-offset: -2px;
+    }
+
+    .hint-mode .title-token.redacted:hover {
+      background: #6a6a3a;
+    }
+
+    .title-token.revealed {
+      display: inline-flex;
+      align-items: center;
+      background: #3d7a3d;
+      color: white;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 22px;
+      font-weight: bold;
+      vertical-align: middle;
+      margin: 3px 2px;
+      height: 34px;
+    }
+
+    .title-token.hint-revealed {
+      display: inline-flex;
+      align-items: center;
+      background: #c9a832;
+      color: white;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 22px;
+      font-weight: bold;
+      vertical-align: middle;
+      margin: 3px 2px;
+      height: 34px;
+    }
+
+    .hint-btn {
+      padding: 10px 18px;
+      font-size: 15px;
+      font-family: inherit;
+      background: #c9a832;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .hint-btn:hover {
+      background: #b89828;
+    }
+
+    .hint-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .title-token.stop-word {
+      color: #777;
+      margin: 0 2px;
+      font-size: 22px;
+      vertical-align: middle;
+    }
+
+    .title-token.symbol {
+      color: #777;
+      margin: 0 1px;
+      font-size: 22px;
+      vertical-align: middle;
+    }
+
+    #abstract-area {
+      margin-bottom: 24px;
+    }
+
+    #abstract-text {
+      font-size: 15px;
+      line-height: 1.8;
+      color: #444;
+    }
+
+    #input-area {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    #guess-input {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 16px;
+      font-family: inherit;
+      border: 2px solid #d4c9b0;
+      border-radius: 4px;
+      background: white;
+      outline: none;
+    }
+
+    #guess-input:focus {
+      border-color: #8b7355;
+    }
+
+    #guess-btn {
+      padding: 10px 24px;
+      font-size: 15px;
+      font-family: inherit;
+      background: #8b7355;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #guess-btn:hover {
+      background: #7a6548;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #aaa;
+      font-style: italic;
+      margin-bottom: 16px;
+    }
+
+    #message {
+      font-size: 13px;
+      margin-bottom: 12px;
+      min-height: 20px;
+    }
+
+    #message.hit { color: #5a8f5a; }
+    #message.miss { color: #999; }
+
+    .give-up-btn {
+      padding: 5px 14px;
+      font-size: 12px;
+      font-family: inherit;
+      background: #f0ece4;
+      color: #8b7355;
+      border: 1px solid #d4c9b0;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .give-up-btn:hover {
+      background: #e8e3da;
+      border-color: #8b7355;
+    }
+
+    #stats-bar {
+      display: flex;
+      gap: 24px;
+      font-size: 13px;
+      color: #777;
+      margin-bottom: 20px;
+    }
+
+    #stats-bar strong {
+      color: #3a3a3a;
+    }
+
+    #guess-history {
+      border-top: 1px solid #e0dbd3;
+      padding-top: 16px;
+    }
+
+    .guess-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .guess-pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+
+    .guess-pill.hit {
+      background: #5a8f5a;
+      color: white;
+    }
+
+    .guess-pill.miss {
+      background: #e8e3da;
+      color: #999;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #faf8f5;
+      border-radius: 8px;
+      padding: 32px 28px;
+      max-width: 480px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: #999;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: #3a3a3a;
+    }
+
+    .paper-link {
+      display: inline-block;
+      padding: 10px 24px;
+      background: #3d7a3d;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .paper-link:hover {
+      background: #2e6b2e;
+    }
+
+    .scorecard-box {
+      background: #f8f6f2;
+      border-radius: 4px;
+      padding: 14px;
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #555;
+      margin: 16px 0;
+    }
+
+    .copy-btn {
+      padding: 4px 10px;
+      font-size: 11px;
+      font-family: inherit;
+      background: #8b7355;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .copy-btn:hover {
+      background: #7a6548;
+    }
+
+    .lifetime-stats {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+      border-top: 1px solid #e0dbd3;
+      padding-top: 20px;
+      margin-top: 20px;
+    }
+
+    .stat-item .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #3a3a3a;
+    }
+
+    .stat-item .stat-label {
+      font-size: 11px;
+      color: #888;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 12px;
+      }
+
+      #header h1 {
+        font-size: 22px;
+      }
+
+      #abstract-text {
+        font-size: 14px;
+      }
+
+      #input-area {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      #guess-btn {
+        width: 100%;
+      }
+
+      #stats-bar {
+        gap: 12px;
+        font-size: 12px;
+      }
+
+      .stat-item .stat-value {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="header">
+      <h1>TITLE PENDING</h1>
+      <p class="subtitle">Guess the paper title from the abstract</p>
+      <p class="puzzle-info">Puzzle #<span id="puzzle-number"></span> — <span id="puzzle-date"></span></p>
+    </div>
+
+    <div id="game-controls">
+      <div id="input-area">
+        <input type="text" id="guess-input" placeholder="Enter a word..." autocomplete="off" />
+        <button id="guess-btn">Guess</button>
+        <button id="hint-btn" class="hint-btn">Hint</button>
+      </div>
+      <p class="hint">Exact word match (plurals won't match singulars)</p>
+      <p id="message"></p>
+    </div>
+
+    <div id="title-area">
+      <div class="section-label" id="title-label">Title</div>
+      <div id="title-display"></div>
+    </div>
+
+    <div id="abstract-area">
+      <div class="section-label">Abstract</div>
+      <p id="abstract-text"></p>
+    </div>
+
+    <div id="stats-bar">
+      <span>Guesses: <strong id="guess-count">0</strong></span>
+      <span>Found: <strong id="found-count">0</strong> / <span id="total-guessable">0</span></span>
+      <span id="hints-counter" style="display:none; color:#c9a832;">Hints: <strong id="hints-count">0</strong></span>
+      <span style="margin-left: auto; display: flex; gap: 8px;"><button id="give-up-btn" class="give-up-btn">Give Up</button></span>
+    </div>
+
+    <div id="guess-history">
+      <div class="section-label">Guesses</div>
+      <div class="guess-pills" id="guess-pills"></div>
+    </div>
+
+  </div>
+
+  <div class="modal-overlay" id="win-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close">&times;</button>
+      <div id="modal-title" style="font-size: 20px; font-weight: bold; color: #3a3a3a; text-align: center; margin-bottom: 12px; line-height: 1.4;"></div>
+      <div style="text-align: center; margin-bottom: 20px;">
+        <a id="paper-link" class="paper-link" href="#" target="_blank">Read the Paper</a>
+      </div>
+      <div style="text-align: center;">
+        <div class="section-label">Your Score</div>
+        <div id="score-display"></div>
+      </div>
+      <div class="scorecard-box" style="display: flex; align-items: flex-start; gap: 10px;">
+        <div id="scorecard-text" style="flex: 1;"></div>
+        <button class="copy-btn" id="copy-btn">Copy</button>
+      </div>
+      <div class="lifetime-stats" id="lifetime-stats"></div>
+    </div>
+  </div>
+
+  <script>
+const PUZZLES = [
+  {
+    title: "No time to die: An in-depth analysis of James Bond's exposure to infectious agents",
+    abstract: "Global travelers, whether tourists or secret agents, are exposed to a smörgåsbord of infectious agents. We hypothesized that agents pre-occupied with espionage and counterterrorism may, at their peril, fail to correctly prioritize travel medicine. To examine our hypothesis, we examined adherence to international travel advice during the 86 international journeys that James Bond was observed to undertake in feature films spanning 1962–2021. We uncovered above-average sexual activity, often without sufficient time for an exchange of sexual history, with a remarkably high mortality among Bond's sexual partners. Given how inopportune a bout of diarrhea would be in the midst of world-saving action, it is striking that Bond is seen washing his hands on only two occasions, despite numerous exposures to foodborne pathogens. Bond's approach to vector-borne diseases and neglected tropical diseases is erratic, sometimes following travel advice to the letter, but more often dwelling on the side of complete ignorance. Given the limited time Bond receives to prepare for missions, we urgently ask his employer MI6 to take its responsibility seriously. We only live once.",
+    doi: "10.1016/j.tmaid.2021.102175"
+  },
+  {
+    title: "Food Security: The Challenge of Feeding 9 Billion People",
+    abstract: "Continuing population and consumption growth will mean that the global demand for food will increase for at least another 40 years. Growing competition for land, water, and energy, in addition to the overexploitation of fisheries, will affect our ability to produce food, as will the urgent requirement to reduce the impact of the food system on the environment. The effects of climate change are a further threat. But the world can produce more food and can ensure that it is used more efficiently and equitably. A multifaceted and linked global strategy is needed to ensure sustainable and equitable food security, different components of which are explored here.",
+    doi: "10.1126/science.1185383"
+  },
+  {
+    title: "Pressures produced when penguins pooh — calculations on avian defaecation",
+    abstract: "Chinstrap and Adélie penguins generate considerable pressures to propel their faeces away from the edge of the nest. The pressures involved can be approximated if the following parameters are known: distance the faecal material travels before it hits the ground, density and viscosity of the material, and shape, aperture, and height above the ground of the orificium venti. We calculated that fully grown penguins generate pressures of around 10 kPa to expel watery material and 60 kPa to expel material of higher viscosity similar to that of olive oil. The forces involved, lying well above those known for humans, are high, but do not lead to an energetically wasteful turbulent flow. Whether a bird chooses the direction into which it decides to expel its faeces, and what role the wind plays in this, remain unknown.",
+    doi: "10.1007/s00300-003-0563-3"
+  },
+  {
+    title: "You probably think this paper's about you: Narcissists' perceptions of their personality and reputation.",
+    abstract: "Do narcissists have insight into the negative aspects of their personality and reputation? Using both clinical and subclinical measures of narcissism, we examined others' perceptions, self-perceptions and meta-perceptions of narcissists across a wide range of traits for a new acquaintance and close other, longitudinally with a group of new acquaintances, and among coworkers. Results bring us to three surprising conclusions about narcissists: they understand that others see them less positively than they see themselves, they have some insight into the fact that they make positive first impressions that deteriorate over time, and they have insight into their narcissistic personality. These findings shed light on some of the psychological mechanisms underlying narcissism.",
+    doi: "10.1037/a0023781"
+  },
+  {
+    title: "The effect of having Christmas dinner with in-laws on gut microbiota composition",
+    abstract: "The Christmas season can have a major impact on human health. Especially increased contact with in-laws during the holiday season is an important environmental factor known to affect both physical and mental health. However, the mechanism through which in-laws influence host health is not yet understood. Emerging evidence has identified the intestinal microbiota as an important mediator for both physical and mental health. Here, we performed a prospective observational study to examine the impact of contact with in-laws on the gut microbiome during the Christmas season. We observed two distinct microbial-biomarker signatures discriminating the participants that visited their in-laws versus their own family over the Christmas season. In participants visiting in-laws, there was a significant decrease in all Ruminococcus species, known to be associated with psychological stress and depression.",
+    doi: "10.1016/j.humic.2019.100058"
+  },
+  {
+    title: "Paying Not to Go to the Gym",
+    abstract: "How do consumers choose from a menu of contracts? We analyze a novel dataset from three U.S. health clubs with information on both the contractual choice and the day-to-day attendance decisions of 7,752 members over three years. Members who choose a contract with a flat monthly fee of over $70 attend on average 4.3 times per month. They pay a price per expected visit of more than $17, even though they could pay $10 per visit using a 10-visit pass. On average, these users forgo savings of $600 during their membership. Consumers who choose a monthly contract are 17 percent more likely to stay enrolled beyond one year than users committing for a year. Leading explanations for our findings are overconfidence about future self-control or about future efficiency.",
+    doi: "10.1257/aer.96.3.694"
+  },
+  {
+    title: "Would Bohr be born if Bohm were born before Born?",
+    abstract: "I discuss a hypothetical historical context in which a Bohm-like deterministic interpretation of the Schrödinger equation is proposed before the Born probabilistic interpretation and argue that in such a context the Copenhagen (Bohr) interpretation would probably have not achieved great popularity among physicists.",
+    doi: "10.1119/1.2805241"
+  },
+  {
+    title: "Snakes on a Spaceship: Python in Heliophysics",
+    abstract: "Computational analysis has become ubiquitous within the heliophysics community. However, community standards for peer review of codes and analysis have lagged behind these developments. This absence has contributed to the reproducibility crisis, where inadequate analysis descriptions and loss of scientific data have made scientific studies difficult or impossible to replicate. The heliophysics community has responded to this challenge by expressing a desire for a more open, collaborative set of analysis tools. This article summarizes the current state of these efforts and presents an overview of many of the existing Python heliophysics tools.",
+    doi: "10.1029/2018JA025877"
+  },
+  {
+    title: "Die hard: Are cancer stem cells the Bruce Willises of tumor biology?",
+    abstract: "In recent years, an exponentially growing number of studies have focused on identifying cancer stem cells in human malignancies. The rare CSCs could be crucial in controlling and curing cancer: through asymmetric division CSCs supposedly drive tumor growth and evade therapy with the help of traits shared with normal stem cells such as quiescence, self-renewal ability, and multidrug resistance pump activity. Here, we give a brief overview of techniques used to confirm the stem cell-like behavior of putative CSCs and discuss markers and methods for identifying, isolating, and culturing them. The large number of tumor types thus far with a subpopulation of uniquely tumorigenic and therapy resistant cells suggests that despite the unanswered questions and inconsistencies, the CSC hypothesis has a legitimate role to play in tumor biology.",
+    doi: "10.1002/cyto.a.20690"
+  },
+  {
+    title: "Fantastic Yeasts and Where To Find Them",
+    abstract: "Dimorphic fungal pathogens are a significant cause of human disease worldwide. Notably, the dimorphic fungal pathogens within the order Onygenales are considered primary pathogens, causing disease in healthy hosts. Current changes in taxonomy are underway due to advances in molecular phylogenetics, population genetics, and new emerging dimorphic fungal pathogens causing human disease. In this review, we highlight evolutionary relationships of dimorphic fungal pathogens that cause human disease within the order Onygenales and provide rationale to support increased investment in studies understanding the evolutionary relationships of these pathogens.",
+    doi: "10.1016/j.mib.2019.05.002"
+  },
+  {
+    title: "Experimental replication shows knives manufactured from frozen human feces do not work",
+    abstract: "The ethnographic account of an Inuit man manufacturing a knife from his own frozen feces to butcher and disarticulate a dog has permeated both the academic literature and popular culture. To evaluate the validity of this claim, we tested the basis of that account via experimental archaeology. Our experiments assessed the functionality of knives made from human feces in controlled conditions that provided optimal conditions for success. However, they were not functional. While much research has shown foragers to be technologically resourceful, innovative, and savvy, we suggest that this ethnographic account should no longer be used to support that narrative.",
+    doi: "10.1016/j.jasrep.2019.102002"
+  }
+];
+
+const STOP_WORDS = new Set([
+  'the','a','an','of','in','on','for','and','to','is','s','are','was','were',
+  'with','by','at','from','that','this','it','as','or','be','has','had',
+  'have','its','but','not','no','which','their','can','do','does','into',
+  'than','then','also','been','being','between','both','each','few','more',
+  'most','other','some','such','only','over','same','so','these','those',
+  'through','under','very','will','about','after','all','because','before',
+  'could','did','during','if','may','might','much','should','still','until',
+  'up','upon','what','when','where','while','who','would'
+]);
+
+function tokenizeTitle(title) {
+  const result = [];
+  // Split into: alphabetic words (2+ letters), single letters, non-alpha chunks, whitespace
+  const parts = title.match(/[a-zA-Z]{2,}|[^a-zA-Z\s]+|[a-zA-Z]|\s+/g) || [];
+  let lastWasSpace = true;
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    if (/^\s+$/.test(part)) { lastWasSpace = true; continue; }
+    // Alphabetic word (2+ letters)
+    if (/^[a-zA-Z]{2,}$/.test(part)) {
+      if (STOP_WORDS.has(part.toLowerCase())) {
+        result.push({ raw: part, type: 'stop-word', display: part });
+      } else {
+        result.push({
+          raw: part, type: 'guessable', display: part,
+          matchWord: part.toLowerCase(), letterCount: part.length
+        });
+      }
+      lastWasSpace = false;
+    } else if (/^[a-zA-Z]$/.test(part)) {
+      // Single letter — if after space and is a stop word (a, I, s), make it a stop-word
+      if (lastWasSpace && STOP_WORDS.has(part.toLowerCase())) {
+        result.push({ raw: part, type: 'stop-word', display: part });
+      } else {
+        // Merge with previous symbol (e.g. 's after apostrophe)
+        const prev = result[result.length - 1];
+        if (prev && prev.type === 'symbol') {
+          prev.display += part; prev.raw += part;
+        } else {
+          result.push({ raw: part, type: 'symbol', display: part });
+        }
+      }
+      lastWasSpace = false;
+    } else {
+      // Non-alpha — merge with previous symbol if no space between
+      const prev = result[result.length - 1];
+      if (!lastWasSpace && prev && prev.type === 'symbol') {
+        prev.display += part; prev.raw += part;
+      } else {
+        result.push({ raw: part, type: 'symbol', display: part });
+      }
+      lastWasSpace = false;
+    }
+  }
+  return result;
+}
+
+function getTodayPuzzleIndex() {
+  return Math.floor(Date.now() / 86400000) % PUZZLES.length;
+}
+
+function getTodayDateString() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function formatDateDisplay(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+}
+
+function loadStats() {
+  try {
+    const raw = localStorage.getItem('titlePending_stats');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { played: 0, solved: 0, currentStreak: 0, bestStreak: 0, totalGuesses: 0, history: {} };
+}
+
+function saveStats(stats) {
+  localStorage.setItem('titlePending_stats', JSON.stringify(stats));
+}
+
+function loadCurrent() {
+  try {
+    const raw = localStorage.getItem('titlePending_current');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+}
+
+function saveCurrent(current) {
+  localStorage.setItem('titlePending_current', JSON.stringify(current));
+}
+
+function clearCurrent() {
+  localStorage.removeItem('titlePending_current');
+}
+
+function finalizeUnsolvedGame(stats, current) {
+  const puzzleKey = String(current.puzzleIndex);
+  if (!stats.history[puzzleKey]) {
+    stats.played++;
+    // Don't add to totalGuesses — that only tracks solved games for avg calculation
+    stats.history[puzzleKey] = {
+      solved: false,
+      guesses: current.guesses.length,
+      date: current.date || getTodayDateString()
+    };
+    stats.currentStreak = 0;
+    saveStats(stats);
+  }
+  clearCurrent();
+}
+
+function checkStreakOnLoad(stats) {
+  let mostRecentDate = null;
+  for (const key in stats.history) {
+    const entry = stats.history[key];
+    if (!mostRecentDate || entry.date > mostRecentDate) {
+      mostRecentDate = entry.date;
+    }
+  }
+  if (!mostRecentDate) return;
+
+  const now = new Date();
+  const yesterday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1));
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+  const yesterdayEntry = Object.values(stats.history).find(e => e.date === yesterdayStr);
+  if (!yesterdayEntry || !yesterdayEntry.solved) {
+    if (stats.currentStreak > 0) {
+      stats.currentStreak = 0;
+      saveStats(stats);
+    }
+  }
+}
+
+function recordWin(stats, puzzleIndex, guessCount) {
+  const puzzleKey = String(puzzleIndex);
+  stats.played++;
+  stats.solved++;
+  stats.totalGuesses += guessCount;
+  stats.currentStreak++;
+  if (stats.currentStreak > stats.bestStreak) {
+    stats.bestStreak = stats.currentStreak;
+  }
+  stats.history[puzzleKey] = {
+    solved: true,
+    guesses: guessCount,
+    date: getTodayDateString()
+  };
+  saveStats(stats);
+}
+
+let gameState = {
+  puzzleIndex: 0,
+  puzzle: null,
+  tokens: [],
+  guessableIndices: [],
+  revealedIndices: new Set(),
+  hintRevealed: new Set(),   // indices auto-solved by hints (shown in yellow)
+  hintLetters: {},            // { tokenIndex: numLettersRevealed }
+  hintsUsed: 0,
+  hintMode: false,
+  guesses: [],
+  solved: false
+};
+
+function initGame() {
+  const stats = loadStats();
+  const puzzleIndex = getTodayPuzzleIndex();
+  const current = loadCurrent();
+
+  if (current && current.puzzleIndex !== puzzleIndex) {
+    finalizeUnsolvedGame(stats, current);
+  }
+
+  checkStreakOnLoad(stats);
+
+  const puzzleKey = String(puzzleIndex);
+  if (stats.history[puzzleKey]) {
+    showCompletedState(stats, puzzleIndex);
+    return;
+  }
+
+  gameState.puzzleIndex = puzzleIndex;
+  gameState.puzzle = PUZZLES[puzzleIndex];
+  gameState.tokens = tokenizeTitle(gameState.puzzle.title);
+  gameState.guessableIndices = gameState.tokens
+    .map((t, i) => t.type === 'guessable' ? i : -1)
+    .filter(i => i !== -1);
+  gameState.revealedIndices = new Set();
+  gameState.hintRevealed = new Set();
+  gameState.hintLetters = {};
+  gameState.hintsUsed = 0;
+  gameState.hintMode = false;
+  gameState.guesses = [];
+  gameState.solved = false;
+
+  if (current && current.puzzleIndex === puzzleIndex) {
+    gameState.guesses = current.guesses;
+    gameState.hintLetters = current.hintLetters || {};
+    gameState.hintsUsed = current.hintsUsed || 0;
+    gameState.hintRevealed = new Set(current.hintRevealed || []);
+    for (const guess of current.guesses) {
+      for (const idx of gameState.guessableIndices) {
+        if (gameState.tokens[idx].matchWord === guess.toLowerCase()) {
+          gameState.revealedIndices.add(idx);
+        }
+      }
+    }
+  }
+
+  renderHeader();
+  renderTitle();
+  renderAbstract();
+  renderStatsBar();
+  renderGuessHistory();
+  document.getElementById('guess-input').focus();
+}
+
+function toggleHintMode() {
+  gameState.hintMode = !gameState.hintMode;
+  const titleArea = document.getElementById('title-area');
+  const btn = document.getElementById('hint-btn');
+  if (gameState.hintMode) {
+    titleArea.classList.add('hint-mode');
+    btn.textContent = 'Cancel';
+    btn.style.background = '#999';
+    showMessage('Click a word to reveal a letter', 0);
+  } else {
+    titleArea.classList.remove('hint-mode');
+    btn.textContent = 'Hint';
+    btn.style.background = '';
+    showMessage('', 0);
+  }
+}
+
+function applyHint(idx) {
+  gameState.hintLetters[idx] = (gameState.hintLetters[idx] || 0) + 1;
+  gameState.hintsUsed++;
+
+  // If all letters revealed → auto-solve in yellow
+  if (gameState.hintLetters[idx] >= gameState.tokens[idx].letterCount) {
+    gameState.hintRevealed.add(idx);
+  }
+
+  // Exit hint mode
+  gameState.hintMode = false;
+  document.getElementById('title-area').classList.remove('hint-mode');
+  document.getElementById('hint-btn').textContent = 'Hint';
+  document.getElementById('hint-btn').style.background = '';
+  showMessage('', 0);
+
+  saveCurrentState();
+  renderTitle();
+  renderStatsBar();
+
+  // Check if all words are now found (via guesses or hints)
+  const totalRevealed = gameState.revealedIndices.size + gameState.hintRevealed.size;
+  if (totalRevealed === gameState.guessableIndices.length) {
+    handleWin();
+  }
+}
+
+function updateHintsCounter() {
+  const counter = document.getElementById('hints-counter');
+  if (gameState.hintsUsed > 0) {
+    counter.style.display = '';
+    document.getElementById('hints-count').textContent = gameState.hintsUsed;
+  } else {
+    counter.style.display = 'none';
+  }
+}
+
+function saveCurrentState() {
+  saveCurrent({
+    puzzleIndex: gameState.puzzleIndex,
+    guesses: gameState.guesses,
+    hintLetters: gameState.hintLetters,
+    hintsUsed: gameState.hintsUsed,
+    hintRevealed: Array.from(gameState.hintRevealed),
+    date: getTodayDateString()
+  });
+}
+
+function renderHeader() {
+  document.getElementById('puzzle-number').textContent = gameState.puzzleIndex + 1;
+  document.getElementById('puzzle-date').textContent = formatDateDisplay(getTodayDateString());
+}
+
+function renderTitle() {
+  const container = document.getElementById('title-display');
+  container.innerHTML = '';
+  for (let i = 0; i < gameState.tokens.length; i++) {
+    const token = gameState.tokens[i];
+    const span = document.createElement('span');
+    span.className = 'title-token';
+    if (token.type === 'symbol' || token.type === 'stop-word') {
+      span.classList.add('stop-word');
+      span.textContent = token.display;
+    } else if (gameState.hintRevealed.has(i)) {
+      // Auto-solved by hints — yellow
+      span.classList.add('hint-revealed');
+      span.textContent = token.display;
+    } else if (gameState.revealedIndices.has(i)) {
+      span.classList.add('revealed');
+      span.textContent = token.display;
+    } else {
+      span.classList.add('redacted');
+      const numHinted = gameState.hintLetters[i] || 0;
+      const hintText = token.display.substring(0, numHinted);
+      const dashes = '–'.repeat(token.letterCount - numHinted);
+      span.textContent = hintText + dashes;
+      // Click handler for hint mode
+      const idx = i;
+      span.addEventListener('click', () => {
+        if (gameState.hintMode) applyHint(idx);
+      });
+    }
+    container.appendChild(span);
+  }
+}
+
+function renderAbstract() {
+  document.getElementById('abstract-text').textContent = gameState.puzzle.abstract;
+}
+
+function renderStatsBar() {
+  document.getElementById('guess-count').textContent = gameState.guesses.length;
+  document.getElementById('found-count').textContent = gameState.revealedIndices.size + gameState.hintRevealed.size;
+  document.getElementById('total-guessable').textContent = gameState.guessableIndices.length;
+  updateHintsCounter();
+}
+
+function renderGuessHistory() {
+  const container = document.getElementById('guess-pills');
+  container.innerHTML = '';
+  for (let i = gameState.guesses.length - 1; i >= 0; i--) {
+    const guess = gameState.guesses[i];
+    const pill = document.createElement('span');
+    pill.className = 'guess-pill';
+    const isHit = gameState.guessableIndices.some(
+      idx => gameState.tokens[idx].matchWord === guess.toLowerCase()
+    );
+    pill.classList.add(isHit ? 'hit' : 'miss');
+    pill.textContent = guess;
+    container.appendChild(pill);
+  }
+}
+
+function showMessage(text, duration, cls) {
+  const el = document.getElementById('message');
+  el.textContent = text;
+  el.className = cls || '';
+  if (duration) {
+    setTimeout(() => { if (el.textContent === text) { el.textContent = ''; el.className = ''; } }, duration);
+  }
+}
+
+function handleGuess() {
+  const input = document.getElementById('guess-input');
+  const raw = input.value.trim();
+  input.value = '';
+  input.focus();
+
+  // Strip non-alpha characters
+  const cleaned = raw.replace(/[^a-zA-Z]/g, '');
+  if (!cleaned) return;
+
+  if (gameState.guesses.some(g => g.toLowerCase() === cleaned.toLowerCase())) {
+    showMessage('Already guessed!', 2000);
+    return;
+  }
+
+  gameState.guesses.push(cleaned);
+
+  let found = false;
+  for (const idx of gameState.guessableIndices) {
+    if (!gameState.revealedIndices.has(idx) && !gameState.hintRevealed.has(idx) && gameState.tokens[idx].matchWord === cleaned.toLowerCase()) {
+      gameState.revealedIndices.add(idx);
+      found = true;
+    }
+  }
+
+  saveCurrentState();
+
+  renderTitle();
+  renderStatsBar();
+  renderGuessHistory();
+
+  if (found) {
+    showMessage('Found it!', 1500, 'hit');
+  } else {
+    showMessage('Not in title', 1500, 'miss');
+  }
+
+  const totalRevealed = gameState.revealedIndices.size + gameState.hintRevealed.size;
+  if (totalRevealed === gameState.guessableIndices.length) {
+    handleWin();
+  }
+}
+
+function handleWin() {
+  gameState.solved = true;
+  const stats = loadStats();
+  recordWin(stats, gameState.puzzleIndex, gameState.guesses.length);
+  clearCurrent();
+
+  document.getElementById('title-area').classList.add('solved');
+  document.getElementById('title-label').textContent = 'Title — Solved!';
+  renderTitle();
+  document.getElementById('game-controls').style.display = 'none';
+  showWinSection(stats);
+}
+
+function showWinSection(stats) {
+  const section = document.getElementById('win-modal');
+  const guessCount = gameState.guesses.length;
+  const wordCount = gameState.guessableIndices.length;
+  const guessedWords = gameState.wordsFoundBeforeGiveUp != null
+    ? gameState.wordsFoundBeforeGiveUp
+    : gameState.revealedIndices.size;
+  const hintWords = gameState.hintRevealed.size;
+  const totalFound = guessedWords + hintWords;
+  const foundColor = gameState.solved ? '#5a8f5a' : '#c0392b';
+
+  document.getElementById('modal-title').textContent = gameState.puzzle.title;
+  document.getElementById('paper-link').href = 'https://www.readcube.com/articles/' + encodeURIComponent(gameState.puzzle.doi);
+
+  document.getElementById('score-display').innerHTML =
+    '<div style="display:flex;justify-content:center;gap:40px;margin:16px 0;">' +
+    '<div style="text-align:center"><div style="font-size:32px;font-weight:bold;color:#3a3a3a">' + guessCount + '</div><div style="font-size:12px;color:#888">Guesses</div></div>' +
+    '<div style="text-align:center"><div style="font-size:32px;font-weight:bold;color:' + foundColor + '">' + totalFound + '/' + wordCount + '</div><div style="font-size:12px;color:#888">Words Found</div></div>' +
+    (hintWords > 0 ? '<div style="text-align:center"><div style="font-size:32px;font-weight:bold;color:#c9a832">' + hintWords + '</div><div style="font-size:12px;color:#888">Hinted</div></div>' : '') +
+    '</div>';
+
+  const greenSquares = '🟩'.repeat(guessedWords) + '🟨'.repeat(hintWords) + '⬛'.repeat(wordCount - totalFound);
+  const dateDisplay = formatDateDisplay(getTodayDateString());
+  const statusEmoji = gameState.solved ? '' : ' ❌';
+  const scorecardText = 'Title Pending #' + (gameState.puzzleIndex + 1) + ' 🎓' + statusEmoji + '\n' +
+    dateDisplay + '\n' +
+    greenSquares + ' ' + totalFound + '/' + wordCount + ' words\n' +
+    '📝 ' + guessCount + ' guesses' + (hintWords > 0 ? ' | 💡 ' + hintWords + ' hinted' : '');
+  document.getElementById('scorecard-text').textContent = scorecardText;
+
+  renderLifetimeStats(stats);
+  section.classList.add('visible');
+}
+
+function renderLifetimeStats(stats) {
+  const container = document.getElementById('lifetime-stats');
+  const winRate = stats.played > 0 ? Math.round((stats.solved / stats.played) * 100) : 0;
+  const avgGuesses = stats.solved > 0 ? (stats.totalGuesses / stats.solved).toFixed(1) : '—';
+
+  container.innerHTML = [
+    { value: stats.played, label: 'Played' },
+    { value: stats.solved, label: 'Solved' },
+    { value: winRate + '%', label: 'Win Rate' },
+    { value: stats.currentStreak, label: 'Streak' },
+    { value: stats.bestStreak, label: 'Best' },
+    { value: avgGuesses, label: 'Avg Guesses' }
+  ].map(s =>
+    '<div class="stat-item"><div class="stat-value">' + s.value + '</div><div class="stat-label">' + s.label + '</div></div>'
+  ).join('');
+}
+
+document.getElementById('copy-btn').addEventListener('click', () => {
+  const text = document.getElementById('scorecard-text').textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => showCopied()).catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+});
+
+document.getElementById('modal-close').addEventListener('click', () => {
+  document.getElementById('win-modal').classList.remove('visible');
+});
+
+document.getElementById('win-modal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) {
+    document.getElementById('win-modal').classList.remove('visible');
+  }
+});
+
+function fallbackCopy(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+  showCopied();
+}
+
+function showCopied() {
+  const btn = document.getElementById('copy-btn');
+  btn.textContent = '✓ Copied!';
+  setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+}
+
+function showCompletedState(stats, puzzleIndex) {
+  const puzzle = PUZZLES[puzzleIndex];
+  const tokens = tokenizeTitle(puzzle.title);
+  const entry = stats.history[String(puzzleIndex)];
+
+  gameState.puzzleIndex = puzzleIndex;
+  gameState.puzzle = puzzle;
+  gameState.tokens = tokens;
+  gameState.guessableIndices = tokens.map((t, i) => t.type === 'guessable' ? i : -1).filter(i => i !== -1);
+  // Always reveal all words in completed state (show the answer)
+  gameState.revealedIndices = new Set(gameState.guessableIndices);
+  gameState.solved = entry.solved;
+
+  renderHeader();
+  renderTitle();
+  renderAbstract();
+
+  document.getElementById('game-controls').style.display = 'none';
+  document.getElementById('stats-bar').style.display = 'none';
+  document.getElementById('guess-history').style.display = 'none';
+
+  if (entry.solved) {
+    document.getElementById('title-area').classList.add('solved');
+    document.getElementById('title-label').textContent = 'Title — Solved!';
+  } else {
+    document.getElementById('title-label').textContent = 'Title';
+  }
+
+  // Use stored guess count for display
+  gameState.guesses = { length: entry.guesses };
+  showWinSection(stats);
+}
+
+document.getElementById('guess-btn').addEventListener('click', handleGuess);
+document.getElementById('guess-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') handleGuess();
+});
+
+document.getElementById('hint-btn').addEventListener('click', () => {
+  toggleHintMode();
+});
+
+document.getElementById('give-up-btn').addEventListener('click', () => {
+  if (!confirm('Are you sure you want to give up?')) return;
+  handleGiveUp();
+});
+
+function handleGiveUp() {
+  gameState.solved = false;
+  gameState.wordsFoundBeforeGiveUp = gameState.revealedIndices.size;
+  const stats = loadStats();
+  const puzzleKey = String(gameState.puzzleIndex);
+  stats.played++;
+  stats.history[puzzleKey] = {
+    solved: false,
+    guesses: gameState.guesses.length,
+    found: gameState.wordsFoundBeforeGiveUp,
+    date: getTodayDateString()
+  };
+  stats.currentStreak = 0;
+  saveStats(stats);
+  clearCurrent();
+
+  // Reveal all words
+  for (const idx of gameState.guessableIndices) {
+    gameState.revealedIndices.add(idx);
+  }
+
+  document.getElementById('title-label').textContent = 'Title';
+  renderTitle();
+  document.getElementById('game-controls').style.display = 'none';
+  document.getElementById('give-up-btn').style.display = 'none';
+  showWinSection(stats);
+}
+
+initGame();
+  </script>
+</body>
+</html>
