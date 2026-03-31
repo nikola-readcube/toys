@@ -67,7 +67,7 @@
     }
 
     .title-token {
-      display: inline;
+      display: inline-flex;
       vertical-align: baseline;
     }
 
@@ -169,6 +169,20 @@
       font-size: 15px;
       line-height: 1.8;
       color: #444;
+    }
+
+    .abstract-redacted {
+      display: inline-block;
+      background: #ccc;
+      border-radius: 3px;
+      height: 1em;
+      vertical-align: middle;
+      margin: 0 1px;
+    }
+
+    .abstract-revealed {
+      color: #3d7a3d;
+      font-weight: 600;
     }
 
     #input-area {
@@ -369,25 +383,6 @@
       background: #7a6548;
     }
 
-    .lifetime-stats {
-      display: flex;
-      justify-content: space-around;
-      text-align: center;
-      border-top: 1px solid #e0dbd3;
-      padding-top: 20px;
-      margin-top: 20px;
-    }
-
-    .stat-item .stat-value {
-      font-size: 24px;
-      font-weight: bold;
-      color: #3a3a3a;
-    }
-
-    .stat-item .stat-label {
-      font-size: 11px;
-      color: #888;
-    }
 
     @media (max-width: 480px) {
       .container {
@@ -420,6 +415,91 @@
         font-size: 20px;
       }
     }
+
+    /* Archive button */
+    .archive-btn {
+      padding: 5px 14px;
+      font-size: 12px;
+      font-family: inherit;
+      background: #f0ece4;
+      color: #8b7355;
+      border: 1px solid #d4c9b0;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .archive-btn:hover {
+      background: #e8e3da;
+      border-color: #8b7355;
+    }
+
+    /* Archive modal */
+    .archive-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin: 16px 0;
+    }
+
+    .archive-cell {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      border: 1px solid #d4c9b0;
+      background: #f0ece4;
+      color: #8b7355;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .archive-cell:hover {
+      border-color: #8b7355;
+      background: #e8e3da;
+    }
+
+    .archive-cell.current {
+      border-color: #8b7355;
+      border-width: 2px;
+    }
+
+    .archive-cell.solved {
+      background: #5a8f5a;
+      color: white;
+      border-color: #4a7a4a;
+    }
+
+    .archive-cell.failed {
+      background: #c0392b;
+      color: white;
+      border-color: #a33025;
+    }
+
+    .archive-legend {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      font-size: 11px;
+      color: #888;
+      margin-top: 12px;
+    }
+
+    .archive-legend span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .archive-legend .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
@@ -428,6 +508,7 @@
       <h1>TITLE PENDING</h1>
       <p class="subtitle">Guess the paper title from the abstract</p>
       <p class="puzzle-info">Puzzle #<span id="puzzle-number"></span> — <span id="puzzle-date"></span></p>
+      <button class="archive-btn" id="archive-btn">Archive</button>
     </div>
 
     <div id="game-controls">
@@ -479,122 +560,46 @@
         <div id="scorecard-text" style="flex: 1;"></div>
         <button class="copy-btn" id="copy-btn">Copy</button>
       </div>
-      <div class="lifetime-stats" id="lifetime-stats"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="archive-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="archive-close">&times;</button>
+      <div style="font-size: 18px; font-weight: bold; color: #3a3a3a; text-align: center; margin-bottom: 4px;">Puzzle Archive</div>
+      <div style="font-size: 12px; color: #888; text-align: center; margin-bottom: 12px;">Click a puzzle to play it</div>
+      <div class="archive-grid" id="archive-grid"></div>
+      <div class="archive-legend">
+        <span><span class="swatch" style="background:#5a8f5a;"></span> Solved</span>
+        <span><span class="swatch" style="background:#c0392b;"></span> Gave up</span>
+        <span><span class="swatch" style="background:#f0ece4; border: 1px solid #d4c9b0;"></span> Not played</span>
+      </div>
     </div>
   </div>
 
   <script>
-const PUZZLES = [
-  {
-    title: "No time to die: An in-depth analysis of James Bond's exposure to infectious agents",
-    abstract: "Global travelers, whether tourists or secret agents, are exposed to a smörgåsbord of infectious agents. We hypothesized that agents pre-occupied with espionage and counterterrorism may, at their peril, fail to correctly prioritize travel medicine. To examine our hypothesis, we examined adherence to international travel advice during the 86 international journeys that James Bond was observed to undertake in feature films spanning 1962–2021. We uncovered above-average sexual activity, often without sufficient time for an exchange of sexual history, with a remarkably high mortality among Bond's sexual partners. Given how inopportune a bout of diarrhea would be in the midst of world-saving action, it is striking that Bond is seen washing his hands on only two occasions, despite numerous exposures to foodborne pathogens. Bond's approach to vector-borne diseases and neglected tropical diseases is erratic, sometimes following travel advice to the letter, but more often dwelling on the side of complete ignorance. Given the limited time Bond receives to prepare for missions, we urgently ask his employer MI6 to take its responsibility seriously. We only live once.",
-    doi: "10.1016/j.tmaid.2021.102175"
-  },
-  {
-    title: "Food Security: The Challenge of Feeding 9 Billion People",
-    abstract: "Continuing population and consumption growth will mean that the global demand for food will increase for at least another 40 years. Growing competition for land, water, and energy, in addition to the overexploitation of fisheries, will affect our ability to produce food, as will the urgent requirement to reduce the impact of the food system on the environment. The effects of climate change are a further threat. But the world can produce more food and can ensure that it is used more efficiently and equitably. A multifaceted and linked global strategy is needed to ensure sustainable and equitable food security, different components of which are explored here.",
-    doi: "10.1126/science.1185383"
-  },
-  {
-    title: "Pressures produced when penguins pooh — calculations on avian defaecation",
-    abstract: "Chinstrap and Adélie penguins generate considerable pressures to propel their faeces away from the edge of the nest. The pressures involved can be approximated if the following parameters are known: distance the faecal material travels before it hits the ground, density and viscosity of the material, and shape, aperture, and height above the ground of the orificium venti. We calculated that fully grown penguins generate pressures of around 10 kPa to expel watery material and 60 kPa to expel material of higher viscosity similar to that of olive oil. The forces involved, lying well above those known for humans, are high, but do not lead to an energetically wasteful turbulent flow. Whether a bird chooses the direction into which it decides to expel its faeces, and what role the wind plays in this, remain unknown.",
-    doi: "10.1007/s00300-003-0563-3"
-  },
-  {
-    title: "You probably think this paper's about you: Narcissists' perceptions of their personality and reputation.",
-    abstract: "Do narcissists have insight into the negative aspects of their personality and reputation? Using both clinical and subclinical measures of narcissism, we examined others' perceptions, self-perceptions and meta-perceptions of narcissists across a wide range of traits for a new acquaintance and close other, longitudinally with a group of new acquaintances, and among coworkers. Results bring us to three surprising conclusions about narcissists: they understand that others see them less positively than they see themselves, they have some insight into the fact that they make positive first impressions that deteriorate over time, and they have insight into their narcissistic personality. These findings shed light on some of the psychological mechanisms underlying narcissism.",
-    doi: "10.1037/a0023781"
-  },
-  {
-    title: "The effect of having Christmas dinner with in-laws on gut microbiota composition",
-    abstract: "The Christmas season can have a major impact on human health. Especially increased contact with in-laws during the holiday season is an important environmental factor known to affect both physical and mental health. However, the mechanism through which in-laws influence host health is not yet understood. Emerging evidence has identified the intestinal microbiota as an important mediator for both physical and mental health. Here, we performed a prospective observational study to examine the impact of contact with in-laws on the gut microbiome during the Christmas season. We observed two distinct microbial-biomarker signatures discriminating the participants that visited their in-laws versus their own family over the Christmas season. In participants visiting in-laws, there was a significant decrease in all Ruminococcus species, known to be associated with psychological stress and depression.",
-    doi: "10.1016/j.humic.2019.100058"
-  },
-  {
-    title: "Paying Not to Go to the Gym",
-    abstract: "How do consumers choose from a menu of contracts? We analyze a novel dataset from three U.S. health clubs with information on both the contractual choice and the day-to-day attendance decisions of 7,752 members over three years. Members who choose a contract with a flat monthly fee of over $70 attend on average 4.3 times per month. They pay a price per expected visit of more than $17, even though they could pay $10 per visit using a 10-visit pass. On average, these users forgo savings of $600 during their membership. Consumers who choose a monthly contract are 17 percent more likely to stay enrolled beyond one year than users committing for a year. Leading explanations for our findings are overconfidence about future self-control or about future efficiency.",
-    doi: "10.1257/aer.96.3.694"
-  },
-  {
-    title: "Would Bohr be born if Bohm were born before Born?",
-    abstract: "I discuss a hypothetical historical context in which a Bohm-like deterministic interpretation of the Schrödinger equation is proposed before the Born probabilistic interpretation and argue that in such a context the Copenhagen (Bohr) interpretation would probably have not achieved great popularity among physicists.",
-    doi: "10.1119/1.2805241"
-  },
-  {
-    title: "Snakes on a Spaceship: Python in Heliophysics",
-    abstract: "Computational analysis has become ubiquitous within the heliophysics community. However, community standards for peer review of codes and analysis have lagged behind these developments. This absence has contributed to the reproducibility crisis, where inadequate analysis descriptions and loss of scientific data have made scientific studies difficult or impossible to replicate. The heliophysics community has responded to this challenge by expressing a desire for a more open, collaborative set of analysis tools. This article summarizes the current state of these efforts and presents an overview of many of the existing Python heliophysics tools.",
-    doi: "10.1029/2018JA025877"
-  },
-  {
-    title: "Die hard: Are cancer stem cells the Bruce Willises of tumor biology?",
-    abstract: "In recent years, an exponentially growing number of studies have focused on identifying cancer stem cells in human malignancies. The rare CSCs could be crucial in controlling and curing cancer: through asymmetric division CSCs supposedly drive tumor growth and evade therapy with the help of traits shared with normal stem cells such as quiescence, self-renewal ability, and multidrug resistance pump activity. Here, we give a brief overview of techniques used to confirm the stem cell-like behavior of putative CSCs and discuss markers and methods for identifying, isolating, and culturing them. The large number of tumor types thus far with a subpopulation of uniquely tumorigenic and therapy resistant cells suggests that despite the unanswered questions and inconsistencies, the CSC hypothesis has a legitimate role to play in tumor biology.",
-    doi: "10.1002/cyto.a.20690"
-  },
-  {
-    title: "Fantastic Yeasts and Where To Find Them",
-    abstract: "Dimorphic fungal pathogens are a significant cause of human disease worldwide. Notably, the dimorphic fungal pathogens within the order Onygenales are considered primary pathogens, causing disease in healthy hosts. Current changes in taxonomy are underway due to advances in molecular phylogenetics, population genetics, and new emerging dimorphic fungal pathogens causing human disease. In this review, we highlight evolutionary relationships of dimorphic fungal pathogens that cause human disease within the order Onygenales and provide rationale to support increased investment in studies understanding the evolutionary relationships of these pathogens.",
-    doi: "10.1016/j.mib.2019.05.002"
-  },
-  {
-    title: "Experimental replication shows knives manufactured from frozen human feces do not work",
-    abstract: "The ethnographic account of an Inuit man manufacturing a knife from his own frozen feces to butcher and disarticulate a dog has permeated both the academic literature and popular culture. To evaluate the validity of this claim, we tested the basis of that account via experimental archaeology. Our experiments assessed the functionality of knives made from human feces in controlled conditions that provided optimal conditions for success. However, they were not functional. While much research has shown foragers to be technologically resourceful, innovative, and savvy, we suggest that this ethnographic account should no longer be used to support that narrative.",
-    doi: "10.1016/j.jasrep.2019.102002"
-  }
-];
-
-const STOP_WORDS = new Set([
-  'the','a','an','of','in','on','for','and','to','is','s','are','was','were',
-  'with','by','at','from','that','this','it','as','or','be','has','had',
-  'have','its','but','not','no','which','their','can','do','does','into',
-  'than','then','also','been','being','between','both','each','few','more',
-  'most','other','some','such','only','over','same','so','these','those',
-  'through','under','very','will','about','after','all','because','before',
-  'could','did','during','if','may','might','much','should','still','until',
-  'up','upon','what','when','where','while','who','would'
-]);
+let PUZZLES = [];
 
 function tokenizeTitle(title) {
   const result = [];
-  // Split into: alphabetic words (2+ letters), single letters, non-alpha chunks, whitespace
-  const parts = title.match(/[a-zA-Z]{2,}|[^a-zA-Z\s]+|[a-zA-Z]|\s+/g) || [];
-  let lastWasSpace = true;
-  for (let i = 0; i < parts.length; i++) {
-    const part = parts[i];
-    if (/^\s+$/.test(part)) { lastWasSpace = true; continue; }
-    // Alphabetic word (2+ letters)
-    if (/^[a-zA-Z]{2,}$/.test(part)) {
-      if (STOP_WORDS.has(part.toLowerCase())) {
-        result.push({ raw: part, type: 'stop-word', display: part });
-      } else {
-        result.push({
-          raw: part, type: 'guessable', display: part,
-          matchWord: part.toLowerCase(), letterCount: part.length
-        });
-      }
-      lastWasSpace = false;
-    } else if (/^[a-zA-Z]$/.test(part)) {
-      // Single letter — if after space and is a stop word (a, I, s), make it a stop-word
-      if (lastWasSpace && STOP_WORDS.has(part.toLowerCase())) {
-        result.push({ raw: part, type: 'stop-word', display: part });
-      } else {
-        // Merge with previous symbol (e.g. 's after apostrophe)
-        const prev = result[result.length - 1];
-        if (prev && prev.type === 'symbol') {
-          prev.display += part; prev.raw += part;
-        } else {
-          result.push({ raw: part, type: 'symbol', display: part });
-        }
-      }
-      lastWasSpace = false;
+  // Split on [bracketed] words — brackets mark guessable words
+  const parts = title.split(/(\[[^\]]+\])/);
+  for (const part of parts) {
+    if (!part) continue;
+    const bracketMatch = part.match(/^\[([^\]]+)\]$/);
+    if (bracketMatch) {
+      const word = bracketMatch[1];
+      result.push({
+        raw: word, type: 'guessable', display: word,
+        matchWord: word.toLowerCase(), letterCount: word.length
+      });
     } else {
-      // Non-alpha — merge with previous symbol if no space between
-      const prev = result[result.length - 1];
-      if (!lastWasSpace && prev && prev.type === 'symbol') {
-        prev.display += part; prev.raw += part;
-      } else {
-        result.push({ raw: part, type: 'symbol', display: part });
+      // Visible text — split into words and symbols for rendering
+      const chunks = part.match(/[^\s]+|\s+/g) || [];
+      for (const chunk of chunks) {
+        if (/^\s+$/.test(chunk)) continue;
+        result.push({ raw: chunk, type: 'stop-word', display: chunk });
       }
-      lastWasSpace = false;
     }
   }
   return result;
@@ -615,80 +620,47 @@ function formatDateDisplay(dateStr) {
 
 function loadStats() {
   try {
-    const raw = localStorage.getItem('titlePending_stats');
+    const raw = localStorage.getItem('titlePending_v2_stats');
     if (raw) return JSON.parse(raw);
   } catch (e) {}
-  return { played: 0, solved: 0, currentStreak: 0, bestStreak: 0, totalGuesses: 0, history: {} };
+  return { history: {} };
 }
 
 function saveStats(stats) {
-  localStorage.setItem('titlePending_stats', JSON.stringify(stats));
+  localStorage.setItem('titlePending_v2_stats', JSON.stringify(stats));
 }
 
 function loadCurrent() {
   try {
-    const raw = localStorage.getItem('titlePending_current');
+    const raw = localStorage.getItem('titlePending_v2_current');
     if (raw) return JSON.parse(raw);
   } catch (e) {}
   return null;
 }
 
 function saveCurrent(current) {
-  localStorage.setItem('titlePending_current', JSON.stringify(current));
+  localStorage.setItem('titlePending_v2_current', JSON.stringify(current));
 }
 
 function clearCurrent() {
-  localStorage.removeItem('titlePending_current');
+  localStorage.removeItem('titlePending_v2_current');
 }
 
 function finalizeUnsolvedGame(stats, current) {
   const puzzleKey = String(current.puzzleIndex);
   if (!stats.history[puzzleKey]) {
-    stats.played++;
-    // Don't add to totalGuesses — that only tracks solved games for avg calculation
     stats.history[puzzleKey] = {
       solved: false,
       guesses: current.guesses.length,
       date: current.date || getTodayDateString()
     };
-    stats.currentStreak = 0;
     saveStats(stats);
   }
   clearCurrent();
 }
 
-function checkStreakOnLoad(stats) {
-  let mostRecentDate = null;
-  for (const key in stats.history) {
-    const entry = stats.history[key];
-    if (!mostRecentDate || entry.date > mostRecentDate) {
-      mostRecentDate = entry.date;
-    }
-  }
-  if (!mostRecentDate) return;
-
-  const now = new Date();
-  const yesterday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1));
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-  const yesterdayEntry = Object.values(stats.history).find(e => e.date === yesterdayStr);
-  if (!yesterdayEntry || !yesterdayEntry.solved) {
-    if (stats.currentStreak > 0) {
-      stats.currentStreak = 0;
-      saveStats(stats);
-    }
-  }
-}
-
 function recordWin(stats, puzzleIndex, guessCount) {
   const puzzleKey = String(puzzleIndex);
-  stats.played++;
-  stats.solved++;
-  stats.totalGuesses += guessCount;
-  stats.currentStreak++;
-  if (stats.currentStreak > stats.bestStreak) {
-    stats.bestStreak = stats.currentStreak;
-  }
   stats.history[puzzleKey] = {
     solved: true,
     guesses: guessCount,
@@ -708,8 +680,150 @@ let gameState = {
   hintsUsed: 0,
   hintMode: false,
   guesses: [],
-  solved: false
+  solved: false,
+  isArchive: false  // true when playing a non-daily puzzle from the archive
 };
+
+// Archive localStorage helpers (separate from daily stats)
+function loadArchiveState(puzzleIndex) {
+  try {
+    const raw = localStorage.getItem('titlePending_v2_archive_' + puzzleIndex);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+}
+
+function saveArchiveState(puzzleIndex, state) {
+  localStorage.setItem('titlePending_v2_archive_' + puzzleIndex, JSON.stringify(state));
+}
+
+function getArchiveStatus(puzzleIndex) {
+  // Check daily stats
+  const stats = loadStats();
+  const entry = stats.history[String(puzzleIndex)];
+  if (entry) return entry.solved ? 'solved' : 'failed';
+  // Check archive-specific state
+  const state = loadArchiveState(puzzleIndex);
+  if (state && state.completed) return state.solved ? 'solved' : 'failed';
+  return null;
+}
+
+function buildArchiveGrid() {
+  const grid = document.getElementById('archive-grid');
+  grid.innerHTML = '';
+  const todayIndex = getTodayPuzzleIndex();
+  for (let i = 0; i < PUZZLES.length; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'archive-cell';
+    cell.textContent = i + 1;
+    if (i === todayIndex) cell.classList.add('current');
+    const status = getArchiveStatus(i);
+    if (status) cell.classList.add(status);
+    cell.addEventListener('click', () => {
+      document.getElementById('archive-modal').classList.remove('visible');
+      loadArchivePuzzle(i);
+    });
+    grid.appendChild(cell);
+  }
+}
+
+function loadArchivePuzzle(index) {
+  const todayIndex = getTodayPuzzleIndex();
+  if (index === todayIndex) {
+    // Just reload the daily game
+    gameState.isArchive = false;
+    initGame();
+    return;
+  }
+
+  const puzzle = PUZZLES[index];
+  const tokens = tokenizeTitle(puzzle.title);
+  const guessableIndices = tokens.map((t, i) => t.type === 'guessable' ? i : -1).filter(i => i !== -1);
+
+  gameState.puzzleIndex = index;
+  gameState.puzzle = puzzle;
+  gameState.tokens = tokens;
+  gameState.guessableIndices = guessableIndices;
+  gameState.revealedIndices = new Set();
+  gameState.hintRevealed = new Set();
+  gameState.hintLetters = {};
+  gameState.hintsUsed = 0;
+  gameState.hintMode = false;
+  gameState.guesses = [];
+  gameState.solved = false;
+  gameState.isArchive = true;
+
+  // Check if already completed
+  const status = getArchiveStatus(index);
+  if (status) {
+    gameState.revealedIndices = new Set(guessableIndices);
+    gameState.solved = status === 'solved';
+    showArchiveCompletedState();
+    return;
+  }
+
+  // Restore in-progress archive state
+  const saved = loadArchiveState(index);
+  if (saved && !saved.completed) {
+    gameState.guesses = saved.guesses || [];
+    gameState.hintLetters = saved.hintLetters || {};
+    gameState.hintsUsed = saved.hintsUsed || 0;
+    gameState.hintRevealed = new Set(saved.hintRevealed || []);
+    for (const guess of gameState.guesses) {
+      for (const idx of guessableIndices) {
+        if (tokens[idx].matchWord === guess.toLowerCase()) {
+          gameState.revealedIndices.add(idx);
+        }
+      }
+    }
+  }
+
+  // Show the game UI
+  document.getElementById('puzzle-number').textContent = index + 1;
+  document.getElementById('puzzle-date').textContent = 'Archive';
+  document.getElementById('game-controls').style.display = '';
+  document.getElementById('stats-bar').style.display = '';
+  document.getElementById('guess-history').style.display = '';
+  document.getElementById('give-up-btn').style.display = '';
+  document.getElementById('title-area').classList.remove('solved');
+  document.getElementById('title-label').textContent = 'Title';
+  document.getElementById('win-modal').classList.remove('visible');
+  renderTitle();
+  renderAbstract();
+  renderStatsBar();
+  renderGuessHistory();
+  document.getElementById('guess-input').focus();
+}
+
+function showArchiveCompletedState() {
+  document.getElementById('puzzle-number').textContent = gameState.puzzleIndex + 1;
+  document.getElementById('puzzle-date').textContent = 'Archive';
+  renderTitle();
+  renderAbstract();
+
+  document.getElementById('game-controls').style.display = 'none';
+  document.getElementById('stats-bar').style.display = 'none';
+  document.getElementById('guess-history').style.display = 'none';
+
+  if (gameState.solved) {
+    document.getElementById('title-area').classList.add('solved');
+    document.getElementById('title-label').textContent = 'Title — Solved!';
+  } else {
+    document.getElementById('title-area').classList.remove('solved');
+    document.getElementById('title-label').textContent = 'Title';
+  }
+
+  // Load guess count from archive or daily stats
+  const stats = loadStats();
+  const dailyEntry = stats.history[String(gameState.puzzleIndex)];
+  const archiveEntry = loadArchiveState(gameState.puzzleIndex);
+  const guessCount = dailyEntry ? dailyEntry.guesses : (archiveEntry ? (archiveEntry.guesses || []).length : 0);
+  const found = dailyEntry ? (dailyEntry.found || (dailyEntry.solved ? gameState.guessableIndices.length : 0))
+    : (archiveEntry ? (archiveEntry.guesses || []).filter(g => gameState.guessableIndices.some(idx => gameState.tokens[idx].matchWord === g.toLowerCase())).length : 0);
+  gameState.wordsFoundBeforeGiveUp = gameState.solved ? gameState.guessableIndices.length : found;
+  gameState.guesses = { length: guessCount };
+  showWinSection(stats);
+}
 
 function initGame() {
   const stats = loadStats();
@@ -719,8 +833,6 @@ function initGame() {
   if (current && current.puzzleIndex !== puzzleIndex) {
     finalizeUnsolvedGame(stats, current);
   }
-
-  checkStreakOnLoad(stats);
 
   const puzzleKey = String(puzzleIndex);
   if (stats.history[puzzleKey]) {
@@ -741,6 +853,16 @@ function initGame() {
   gameState.hintMode = false;
   gameState.guesses = [];
   gameState.solved = false;
+  gameState.isArchive = false;
+
+  // Re-show UI elements in case returning from archive
+  document.getElementById('game-controls').style.display = '';
+  document.getElementById('stats-bar').style.display = '';
+  document.getElementById('guess-history').style.display = '';
+  document.getElementById('give-up-btn').style.display = '';
+  document.getElementById('title-area').classList.remove('solved');
+  document.getElementById('title-label').textContent = 'Title';
+  document.getElementById('win-modal').classList.remove('visible');
 
   if (current && current.puzzleIndex === puzzleIndex) {
     gameState.guesses = current.guesses;
@@ -782,11 +904,21 @@ function toggleHintMode() {
 }
 
 function applyHint(idx) {
-  gameState.hintLetters[idx] = (gameState.hintLetters[idx] || 0) + 1;
+  if (!gameState.hintLetters[idx]) gameState.hintLetters[idx] = [];
+  const word = gameState.tokens[idx].display;
+  // Pick a random unrevealed letter position
+  const unrevealed = [];
+  for (let i = 0; i < word.length; i++) {
+    if (!gameState.hintLetters[idx].includes(i)) unrevealed.push(i);
+  }
+  if (unrevealed.length > 0) {
+    const pick = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+    gameState.hintLetters[idx].push(pick);
+  }
   gameState.hintsUsed++;
 
   // If all letters revealed → auto-solve in yellow
-  if (gameState.hintLetters[idx] >= gameState.tokens[idx].letterCount) {
+  if (gameState.hintLetters[idx].length >= gameState.tokens[idx].letterCount) {
     gameState.hintRevealed.add(idx);
   }
 
@@ -799,6 +931,7 @@ function applyHint(idx) {
 
   saveCurrentState();
   renderTitle();
+  renderAbstract();
   renderStatsBar();
 
   // Check if all words are now found (via guesses or hints)
@@ -819,14 +952,25 @@ function updateHintsCounter() {
 }
 
 function saveCurrentState() {
-  saveCurrent({
-    puzzleIndex: gameState.puzzleIndex,
-    guesses: gameState.guesses,
-    hintLetters: gameState.hintLetters,
-    hintsUsed: gameState.hintsUsed,
-    hintRevealed: Array.from(gameState.hintRevealed),
-    date: getTodayDateString()
-  });
+  if (gameState.isArchive) {
+    saveArchiveState(gameState.puzzleIndex, {
+      guesses: gameState.guesses,
+      hintLetters: gameState.hintLetters,
+      hintsUsed: gameState.hintsUsed,
+      hintRevealed: Array.from(gameState.hintRevealed),
+      completed: false,
+      solved: false
+    });
+  } else {
+    saveCurrent({
+      puzzleIndex: gameState.puzzleIndex,
+      guesses: gameState.guesses,
+      hintLetters: gameState.hintLetters,
+      hintsUsed: gameState.hintsUsed,
+      hintRevealed: Array.from(gameState.hintRevealed),
+      date: getTodayDateString()
+    });
+  }
 }
 
 function renderHeader() {
@@ -853,10 +997,12 @@ function renderTitle() {
       span.textContent = token.display;
     } else {
       span.classList.add('redacted');
-      const numHinted = gameState.hintLetters[i] || 0;
-      const hintText = token.display.substring(0, numHinted);
-      const dashes = '–'.repeat(token.letterCount - numHinted);
-      span.textContent = hintText + dashes;
+      const hintedPositions = gameState.hintLetters[i] || [];
+      let text = '';
+      for (let c = 0; c < token.letterCount; c++) {
+        text += hintedPositions.includes(c) ? token.display[c] : '–';
+      }
+      span.textContent = text;
       // Click handler for hint mode
       const idx = i;
       span.addEventListener('click', () => {
@@ -868,7 +1014,48 @@ function renderTitle() {
 }
 
 function renderAbstract() {
-  document.getElementById('abstract-text').textContent = gameState.puzzle.abstract;
+  const container = document.getElementById('abstract-text');
+  const abstract = gameState.puzzle.abstract;
+
+  // Collect revealed title words
+  const revealedWords = new Set();
+  for (const idx of gameState.guessableIndices) {
+    if (gameState.revealedIndices.has(idx) || gameState.hintRevealed.has(idx)) {
+      revealedWords.add(gameState.tokens[idx].matchWord);
+    }
+  }
+
+  // Check if all title words revealed — show plain abstract
+  const allRevealed = gameState.guessableIndices.every(
+    idx => revealedWords.has(gameState.tokens[idx].matchWord)
+  );
+  if (allRevealed) {
+    container.textContent = abstract.replace(/\[([^\]]+)\]/g, '$1');
+    return;
+  }
+
+  // Parse abstract brackets: [word] marks a hideable word
+  container.innerHTML = '';
+  const parts = abstract.split(/(\[[^\]]+\])/);
+  for (const part of parts) {
+    const bracketMatch = part.match(/^\[([^\]]+)\]$/);
+    if (bracketMatch) {
+      const word = bracketMatch[1];
+      if (revealedWords.has(word.toLowerCase())) {
+        const span = document.createElement('span');
+        span.className = 'abstract-revealed';
+        span.textContent = word;
+        container.appendChild(span);
+      } else {
+        const block = document.createElement('span');
+        block.className = 'abstract-redacted';
+        block.style.width = (word.length * 0.55) + 'em';
+        container.appendChild(block);
+      }
+    } else {
+      container.appendChild(document.createTextNode(part));
+    }
+  }
 }
 
 function renderStatsBar() {
@@ -931,6 +1118,7 @@ function handleGuess() {
   saveCurrentState();
 
   renderTitle();
+  renderAbstract();
   renderStatsBar();
   renderGuessHistory();
 
@@ -949,12 +1137,24 @@ function handleGuess() {
 function handleWin() {
   gameState.solved = true;
   const stats = loadStats();
-  recordWin(stats, gameState.puzzleIndex, gameState.guesses.length);
-  clearCurrent();
+  if (gameState.isArchive) {
+    saveArchiveState(gameState.puzzleIndex, {
+      guesses: gameState.guesses,
+      hintLetters: gameState.hintLetters,
+      hintsUsed: gameState.hintsUsed,
+      hintRevealed: Array.from(gameState.hintRevealed),
+      completed: true,
+      solved: true
+    });
+  } else {
+    recordWin(stats, gameState.puzzleIndex, gameState.guesses.length);
+    clearCurrent();
+  }
 
   document.getElementById('title-area').classList.add('solved');
   document.getElementById('title-label').textContent = 'Title — Solved!';
   renderTitle();
+  renderAbstract();
   document.getElementById('game-controls').style.display = 'none';
   showWinSection(stats);
 }
@@ -970,7 +1170,7 @@ function showWinSection(stats) {
   const totalFound = guessedWords + hintWords;
   const foundColor = gameState.solved ? '#5a8f5a' : '#c0392b';
 
-  document.getElementById('modal-title').textContent = gameState.puzzle.title;
+  document.getElementById('modal-title').textContent = gameState.puzzle.title.replace(/\[([^\]]+)\]/g, '$1');
   document.getElementById('paper-link').href = 'https://www.readcube.com/articles/' + encodeURIComponent(gameState.puzzle.doi);
 
   document.getElementById('score-display').innerHTML =
@@ -989,25 +1189,7 @@ function showWinSection(stats) {
     '📝 ' + guessCount + ' guesses' + (hintWords > 0 ? ' | 💡 ' + hintWords + ' hinted' : '');
   document.getElementById('scorecard-text').textContent = scorecardText;
 
-  renderLifetimeStats(stats);
   section.classList.add('visible');
-}
-
-function renderLifetimeStats(stats) {
-  const container = document.getElementById('lifetime-stats');
-  const winRate = stats.played > 0 ? Math.round((stats.solved / stats.played) * 100) : 0;
-  const avgGuesses = stats.solved > 0 ? (stats.totalGuesses / stats.solved).toFixed(1) : '—';
-
-  container.innerHTML = [
-    { value: stats.played, label: 'Played' },
-    { value: stats.solved, label: 'Solved' },
-    { value: winRate + '%', label: 'Win Rate' },
-    { value: stats.currentStreak, label: 'Streak' },
-    { value: stats.bestStreak, label: 'Best' },
-    { value: avgGuesses, label: 'Avg Guesses' }
-  ].map(s =>
-    '<div class="stat-item"><div class="stat-value">' + s.value + '</div><div class="stat-label">' + s.label + '</div></div>'
-  ).join('');
 }
 
 document.getElementById('copy-btn').addEventListener('click', () => {
@@ -1098,17 +1280,27 @@ function handleGiveUp() {
   gameState.solved = false;
   gameState.wordsFoundBeforeGiveUp = gameState.revealedIndices.size;
   const stats = loadStats();
-  const puzzleKey = String(gameState.puzzleIndex);
-  stats.played++;
-  stats.history[puzzleKey] = {
-    solved: false,
-    guesses: gameState.guesses.length,
-    found: gameState.wordsFoundBeforeGiveUp,
-    date: getTodayDateString()
-  };
-  stats.currentStreak = 0;
-  saveStats(stats);
-  clearCurrent();
+
+  if (gameState.isArchive) {
+    saveArchiveState(gameState.puzzleIndex, {
+      guesses: gameState.guesses,
+      hintLetters: gameState.hintLetters,
+      hintsUsed: gameState.hintsUsed,
+      hintRevealed: Array.from(gameState.hintRevealed),
+      completed: true,
+      solved: false
+    });
+  } else {
+    const puzzleKey = String(gameState.puzzleIndex);
+    stats.history[puzzleKey] = {
+      solved: false,
+      guesses: gameState.guesses.length,
+      found: gameState.wordsFoundBeforeGiveUp,
+      date: getTodayDateString()
+    };
+    saveStats(stats);
+    clearCurrent();
+  }
 
   // Reveal all words
   for (const idx of gameState.guessableIndices) {
@@ -1117,12 +1309,34 @@ function handleGiveUp() {
 
   document.getElementById('title-label').textContent = 'Title';
   renderTitle();
+  renderAbstract();
   document.getElementById('game-controls').style.display = 'none';
   document.getElementById('give-up-btn').style.display = 'none';
   showWinSection(stats);
 }
 
-initGame();
+// Archive modal event listeners
+document.getElementById('archive-btn').addEventListener('click', () => {
+  buildArchiveGrid();
+  document.getElementById('archive-modal').classList.add('visible');
+});
+
+document.getElementById('archive-close').addEventListener('click', () => {
+  document.getElementById('archive-modal').classList.remove('visible');
+});
+
+document.getElementById('archive-modal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) {
+    document.getElementById('archive-modal').classList.remove('visible');
+  }
+});
+
+fetch('papers_list.json')
+  .then(r => r.json())
+  .then(data => {
+    PUZZLES = data.map(([doi, title, abstract]) => ({ title, abstract, doi }));
+    initGame();
+  });
   </script>
 </body>
 </html>
